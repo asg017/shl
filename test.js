@@ -25,17 +25,17 @@ function shell(strings, ...valaues) {
         p.stdout.pipe(shell.stdin)
       }
       else {
-        console.log('length', length)
-        pipes[pipes.length - 2].stdout.pipe(shell.stdin ? shell.stdin : shell);
+        pipes[pipes.length - 2].stdout.pipe(shell.stdin);
       }
       return this;
     },
-    /*j
-    redirect() {
+    redirect(path) {
       if (redirected) throw Error('Can only redirect a shell once');
       redirected = true;
+      pipes[pipes.length-1].stdout.pipe(fs.createWriteStream(path))
       return this;
     },
+    /*j
     append() {
       if (redirected) throw Error('Cant append when already redirected');
       if (appended) throw Error('Can only append once');
@@ -49,6 +49,15 @@ function shell(strings, ...valaues) {
 shell`echo "Hello World!"`
   .pipe(shell`tr a-z A-Z`)
   .pipe(shell`rev`)
-  .pipe(fs.createWriteStream('a.out'))
+  .pipe(shell`tr A-Z a-z`)
+  .pipe(shell`rev`)
+  .redirect('a.out')
+
+shell`cat b.in`
+  .pipe(shell`tr a-z A-Z`)
+  .pipe(shell`rev`)
+  .pipe(shell`tr A-Z a-z`)
+  .pipe(shell`rev`)
+  .redirect('b.out')
 
 //const s = fs.createReadStream(process.stdin);
