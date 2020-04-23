@@ -1,4 +1,3 @@
-//const {spawn} = require('child_process')
 const fs = require('fs')
 const {command} = require('execa')
 
@@ -9,13 +8,10 @@ class ShellProcess {
     this.pipes = [];
     this.redirected = false;
     this.appended = false;
-    this.done = false;
-  }
-  end() {
-    return new Promise(resolve, reject) {
-      this.done(() => {
-        resolve();
-      })
+
+    this.doneListeners = []
+    this.done = (cb) => {
+      this.doneListeners.push(cb);
     }
   }
   _addToPipeline(shellProcess) {
@@ -26,6 +22,13 @@ class ShellProcess {
     else {
       this.pipes[this.pipes.length - 2].process.stdout.pipe(shellProcess.process.stdin);
     }
+  }
+  end() {
+    return new Promise((resolve, reject) => {
+      this.done(() => {
+        resolve()
+      });
+    })
   }
   pipe(shellProcess) {
     if (this.redirected) throw Error('Cant pipe once redirected');
@@ -43,6 +46,13 @@ class ShellProcess {
     else {
       this.pipes[this.pipes.length - 2].process.stdout.pipe(shellProcess.process.stdin);
     }
+    shellProcess.process.on('exit', () => {
+      if(length === this.pipes.length){
+        for(const listener of this.doneListeners) {
+          listener();
+        }
+      }
+    })
     return this;
   }
   redirect(path) {
@@ -63,36 +73,39 @@ class ShellProcess {
       throw Error('Can only append to a file, argument must be a string')
     }
     this.appended = true;
-    this.pipes[this.pipes.length-1].process.stdout.pipe(fs.createWriteStream(path), {flags:'a'})
+    this.pipes[this.pipes.length-1].process.stdout.pipe(fs.createWriteStream(path, {flags:'a'}))
     return this;
   }
 
 }
 
-function shell(strings, ...valaues) {
+function shell(strings, ...values) {
   const s = strings.join('')
+  const file = null;
+  const args = [];
   const shellProcess = new ShellProcess(s);
   return shellProcess;
 }
 
-shell`echo "Hello World!"`
-  .pipe(shell`tr a-z A-Z`)
-  .pipe(shell`rev`)
-  .pipe(shell`tr A-Z a-z`)
-  .pipe(shell`rev`)
-  .redirect('a.out')
+async function main() {
 
-shell`cat b.in`
-  .pipe(shell`tr a-z A-Z`)
-  .pipe(shell`rev`)
-  .pipe(shell`tr A-Z a-z`)
-  .pipe(shell`rev`)
-  .redirect('b.out')
+  shell`echo "Hello World!"`
+    .pipe(shell`tr a-z A-Z`)
+    .pipe(shell`rev`)
+    .pipe(shell`tr A-Z a-z`)
+    .pipe(shell`rev`)
+    .redirect('a.out')
 
-shell`cat b.in`
-  .pipe(shell`tr a-z A-Z`)
-  .pipe(shell`rev`)
-  .pipe(shell`tr A-Z a-z`)
-  .pipe(shell`rev`)
-  .append('b.out')
-//const s = fs.createReadStream(process.stdin);
+  await shell`cat b.in`
+    .pipe(shell`tr a-z A-Z`)
+    .pipe(shell`rev`)
+    .redirect('b.out')
+  .end()
+  setTimeout(()=>
+  shell`cat b.in`
+    .pipe(shell`tr A-Z a-z`) // to lowercase
+    .pipe(shell`rev`)        // reverse
+    .append('b.out')
+    ,500)
+}
+main()
