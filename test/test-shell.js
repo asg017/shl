@@ -15,6 +15,9 @@ tape('shell', async t => {
   await shell`echo -n hello`.redirect(fs.createWriteStream('tmp')).end();
   t.equal(fs.readFileSync('tmp', 'utf8'), "hello");
 
+  await shell`yes`.pipe(shell`head -n 100`).redirect(fs.createWriteStream('tmp')).end();
+  t.equal(fs.readFileSync('tmp', 'utf8').split('\n').length, 100) 
+
   await shell`echo -n "hello2"`.redirect(fs.createWriteStream('tmp')).end();
   t.equal(fs.readFileSync('tmp', 'utf8'), "hello2");
 
@@ -69,7 +72,7 @@ tape('shell', async t => {
 
 
   //re-use same stdin in different writes
-  const stream = shell`echo -n mac-cheese`
+  let stream = shell`echo -n mac-cheese`
 
   await Promise.all([
     stream.pipe(shell`rev`).redirect('tmp1.out').end(),
@@ -79,7 +82,15 @@ tape('shell', async t => {
   t.equal(fs.readFileSync('tmp1.out', 'utf8'), "eseehc-cam");
   t.equal(fs.readFileSync('tmp2.out', 'utf8'), "MAC-CHEESE");
 
+  //re-use same stdin in different writes, but wait inbetween
+  stream = shell`echo -n doggo`
 
+  //s1 = stream.pipe(shell`rev`).redirect('tmp1.out');
+  //stream.pipe(shell`tr a-z A-Z`).append('tmp1.out');
+  //await s1.end();
+  //await s2.end();
+
+  //t.equal(fs.readFileSync('tmp1.out', 'utf8'), "oggodDOGGO");
 
   // msc
   /*
