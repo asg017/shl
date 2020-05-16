@@ -8,5 +8,9 @@
   "license": "MIT",
   "scripts": {
     "test": "tape test/**/*"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tape": "^5.0.0"
   }
 }
