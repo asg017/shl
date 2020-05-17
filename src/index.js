@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { execFile } = require("child_process");
+const { spawn } = require("child_process");
 
 // https://github.com/sindresorhus/is-stream/blob/master/index.js
 const isWriteStream = (s) =>
@@ -93,7 +93,7 @@ class ShellPipe {
   constructor(cmdFile, cmdArgs) {
     this.cmdFile = cmdFile;
     this.cmdArgs = cmdArgs;
-    this.process = execFile(cmdFile, cmdArgs);
+    this.process = spawn(cmdFile, cmdArgs);
   }
 }
 
@@ -101,15 +101,14 @@ const STATE = {
   INITIAL: 1,
   CMD_NAME: 2,
 
-  ARGS: 7,
-  ARG_PARSE_TOKEN: 8,
-  ARG_PARSE_VALUE: 9,
-  ARG_PARSE_STRING_SINGLE: 10,
-  ARG_PARSE_STRING_DOUBLE: 11,
+  ARGS: 3,
+  ARG_PARSE_TOKEN: 4,
+  ARG_PARSE_VALUE: 5,
+  ARG_PARSE_STRING_SINGLE: 6,
+  ARG_PARSE_STRING_DOUBLE: 7,
 };
 
 const char_is = {
-  quote: (c) => c === '"' || c === "'",
   whitespace: (c) => /\s/.test(c),
   nonwhitespace: (c) => /\S/.test(c),
 };
@@ -212,9 +211,9 @@ function parseShellTemplate(strings, values) {
           argValue += v.toString();
           break;
         case STATE.ARG_PARSE_STRING_SINGLE:
-          argString += v.toString();
+          throw Error(`SHL_EXPRESSION_ERROR`)
         case STATE.ARG_PARSE_STRING_DOUBLE:
-          argString += v.toString();
+          throw Error(`SHL_EXPRESSION_ERROR`)
           break;
       }
     }
