@@ -36,14 +36,14 @@ tape("shell", async (t) => {
     .pipe(shell`rev`)
     .redirect(fs.createWriteStream("tmp"))
     .end();
-  t.equal(fs.readFileSync("tmp", "utf8"), "dlroW olleH");
+  t.equal(fs.readFileSync("tmp", "utf8").trim(), "dlroW olleH");
 
   await shell`echo -n "billy"`
     .pipe(shell`rev`)
     .pipe(shell`tr a-z A-Z`)
     .redirect(fs.createWriteStream("tmp"))
     .end();
-  t.equal(fs.readFileSync("tmp", "utf8"), "YLLIB");
+  t.equal(fs.readFileSync("tmp", "utf8").trim(), "YLLIB");
 
   await shell`echo -n hello`.redirect("tmp1.out").end();
   t.equal(fs.readFileSync("tmp1.out", "utf8"), "hello");
@@ -62,7 +62,7 @@ tape("shell", async (t) => {
     .redirect("tmp2.out")
     .end();
   t.equal(fs.readFileSync("tmp1.out", "utf8"), "alex");
-  t.equal(fs.readFileSync("tmp2.out", "utf8"), "xela");
+  t.equal(fs.readFileSync("tmp2.out", "utf8").trim(), "xela");
 
   //re-use same stdin in different writes
   let stream = shell`echo -n mac-cheese`;
@@ -78,7 +78,7 @@ tape("shell", async (t) => {
       .end(),
   ]);
 
-  t.equal(fs.readFileSync("tmp1.out", "utf8"), "eseehc-cam");
+  t.equal(fs.readFileSync("tmp1.out", "utf8").trim(), "eseehc-cam");
   t.equal(fs.readFileSync("tmp2.out", "utf8"), "MAC-CHEESE");
 
   t.end();
