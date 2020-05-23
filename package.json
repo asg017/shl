@@ -1,6 +1,6 @@
 {
   "name": "shl",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A taggled template literal for shell commands.",
   "main": "src/index.js",
   "repository": "git@github.com:asg017/shl.git",
