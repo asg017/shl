@@ -248,6 +248,4 @@ function shell(strings, ...values) {
   return new ShellPipeline([pipe]);
 }
 
-module.exports = {
-  default: shell,
-};
+module.exports = { shell };

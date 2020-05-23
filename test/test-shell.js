@@ -1,7 +1,7 @@
 const tape = require("tape");
 const fs = require("fs");
 
-const { default: shell } = require("../src/index.js");
+const { shell } = require("../src/index.js");
 
 tape.onFinish(() => {
   fs.unlinkSync("tmp");
